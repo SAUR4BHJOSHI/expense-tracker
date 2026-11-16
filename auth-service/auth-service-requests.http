@@ -1,0 +1,161 @@
+### Auth Service API Tests
+### Base URL: http://localhost:8081/api/v1/auth
+
+## ===========================
+## REGISTER
+## ===========================
+
+### Register a new user
+POST http://localhost:8081/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Saurabh Joshi",
+  "email": "saurabh@example.com",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("access_token", response.body.data.accessToken);
+    client.global.set("refresh_token", response.body.data.refreshToken);
+    client.global.set("user_id", response.body.data.userId);
+%}
+
+###
+
+## ===========================
+## LOGIN
+## ===========================
+
+### Login with existing user
+POST http://localhost:8081/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "saurabh@example.com",
+  "password": "password123"
+}
+
+> {%
+    client.global.set("access_token", response.body.data.accessToken);
+    client.global.set("refresh_token", response.body.data.refreshToken);
+%}
+
+###
+
+## ===========================
+## REFRESH TOKEN
+## ===========================
+
+### Refresh tokens (use refresh_token from login/register response)
+POST http://localhost:8081/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh_token}}"
+}
+
+> {%
+    client.global.set("access_token", response.body.data.accessToken);
+    client.global.set("refresh_token", response.body.data.refreshToken);
+%}
+
+###
+
+## ===========================
+## VALIDATE TOKEN
+## ===========================
+
+### Validate access token (used by API Gateway)
+POST http://localhost:8081/api/v1/auth/validate
+Authorization: Bearer {{access_token}}
+
+###
+
+## ===========================
+## GET CURRENT USER
+## ===========================
+
+### Get current user info
+GET http://localhost:8081/api/v1/auth/me
+Authorization: Bearer {{access_token}}
+
+###
+
+## ===========================
+## LOGOUT
+## ===========================
+
+### Logout (revokes all refresh tokens)
+POST http://localhost:8081/api/v1/auth/logout
+Authorization: Bearer {{access_token}}
+
+###
+
+## ===========================
+## ERROR CASES
+## ===========================
+
+### Register with duplicate email (should return 409)
+POST http://localhost:8081/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Another User",
+  "email": "saurabh@example.com",
+  "password": "password123"
+}
+
+###
+
+### Login with wrong password (should return 401)
+POST http://localhost:8081/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "saurabh@example.com",
+  "password": "wrongpassword"
+}
+
+###
+
+### Login with non-existent email (should return 401)
+POST http://localhost:8081/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "nobody@example.com",
+  "password": "password123"
+}
+
+###
+
+### Register with invalid email (should return 400)
+POST http://localhost:8081/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "email": "not-an-email",
+  "password": "password123"
+}
+
+###
+
+### Register with short password (should return 400)
+POST http://localhost:8081/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "email": "test@example.com",
+  "password": "short"
+}
+
+###
+
+### Access protected endpoint without token (should return 403)
+GET http://localhost:8081/api/v1/auth/me
+
+###
+

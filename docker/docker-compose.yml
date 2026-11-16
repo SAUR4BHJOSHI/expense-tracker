@@ -1,0 +1,28 @@
+
+name: expense-tracker
+
+services:
+
+  et-database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: et_admin
+      POSTGRES_PASSWORD: et_admin_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+
+  et-redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+
+volumes:
+  postgres_data:
+  redis_data:
