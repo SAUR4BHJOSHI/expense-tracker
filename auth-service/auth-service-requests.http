@@ -10,8 +10,9 @@ POST http://localhost:8081/api/v1/auth/register
 Content-Type: application/json
 
 {
-  "name": "Saurabh Joshi",
-  "email": "saurabh@example.com",
+  "firstName": "Saurabh",
+  "lastName": "Joshi",
+  "email": "saurabh05@example.com",
   "password": "password123"
 }
 

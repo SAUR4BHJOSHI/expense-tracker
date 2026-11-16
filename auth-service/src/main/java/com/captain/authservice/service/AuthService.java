@@ -27,6 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final UserRegisteredEventService userRegisteredEventService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -69,8 +70,14 @@ public class AuthService {
 
         log.info("User registered successfully: {}", credential.getEmail());
 
-        // TODO: Call User Service to create profile (Phase 4)
-        // TODO: Publish UserRegisteredEvent to Kafka (Phase 6)
+        userRegisteredEventService.handleUserRegisteredEvent(UserRegisteredEvent.builder()
+                .userId(userId)
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .build());
+
+        log.info("UserRegisteredEvent sent for user: {}", credential.getEmail());
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
