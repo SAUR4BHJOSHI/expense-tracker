@@ -13,6 +13,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - et-expense-tracker-network
 
   et-redis:
     image: redis:7-alpine
@@ -21,6 +23,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - et-expense-tracker-network
 
   et-kafka:
     image: apache/kafka:4.1.0
@@ -40,6 +44,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     ports:
       - "9092:9092"
+    networks:
+      - et-expense-tracker-network
 
   et-kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:v1.3.0
@@ -51,7 +57,49 @@ services:
       - "127.0.0.1:8085:8080"
     depends_on:
       - et-kafka
+    networks:
+      - et-expense-tracker-network
+
+  et-auth-service:
+    container_name: et-auth-service
+    image: et-auth-service:latest
+    environment:
+      - AUTH_DB_URL=jdbc:postgresql://et-database:5432/auth_db
+      - AUTH_DB_USERNAME=et_admin
+      - AUTH_DB_PASSWORD=et_admin_password
+      - REDIS_HOST=et-redis
+      - REDIS_PORT=6379
+      - KAFKA_BOOTSTRAP_SERVERS=et-kafka:29092
+    ports:
+      - "8081:8081"
+    depends_on:
+      - et-database
+      - et-redis
+      - et-kafka
+    networks:
+      - et-expense-tracker-network
+
+  et-user-service:
+    container_name: et-user-service
+    image: et-user-service:latest
+    environment:
+      - USER_DB_URL=jdbc:postgresql://et-database:5432/user_db
+      - USER_DB_USERNAME=et_admin
+      - USER_DB_PASSWORD=et_admin_password
+      - KAFKA_BOOTSTRAP_SERVERS=et-kafka:29092
+    ports:
+      - "8082:8082"
+    depends_on:
+      - et-database
+      - et-kafka
+    networks:
+      - et-expense-tracker-network
+
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+    et-expense-tracker-network:
+      driver: bridge
