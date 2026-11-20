@@ -1,0 +1,19 @@
+
+_format_version: '3.0'
+
+services:
+  - name: et-auth-service
+    url: http://et-auth-service:8081
+    routes:
+      - name: auth-service
+        paths:
+          - /api/v1/auth/
+        strip_path: false
+
+  - name: et-user-service
+    url: http://et-user-service:8082
+    routes:
+      - name: user-service
+        paths:
+          - /api/v1/user/
+        strip_path: false

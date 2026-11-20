@@ -3,6 +3,25 @@ name: expense-tracker
 
 services:
 
+  et-kong:
+    image: kong:3.8
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/usr/local/kong/declarative/kong.yml"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+    volumes:
+      - ./kong.yml:/usr/local/kong/declarative/kong.yml
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    networks:
+      - et-expense-tracker-network
+
   et-database:
     image: postgres:17-alpine
     environment:
@@ -70,6 +89,8 @@ services:
       - REDIS_HOST=et-redis
       - REDIS_PORT=6379
       - KAFKA_BOOTSTRAP_SERVERS=et-kafka:29092
+    expose:
+        - "8081"
     ports:
       - "8081:8081"
     depends_on:
@@ -87,6 +108,8 @@ services:
       - USER_DB_USERNAME=et_admin
       - USER_DB_PASSWORD=et_admin_password
       - KAFKA_BOOTSTRAP_SERVERS=et-kafka:29092
+    expose:
+      - "8082"
     ports:
       - "8082:8082"
     depends_on:
